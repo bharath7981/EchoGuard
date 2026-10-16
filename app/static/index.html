@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoGuard — AI Voice & Deepfake Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=6">
+</head>
+<body>
+  <div class="background-glow glow-1"></div>
+  <div class="background-glow glow-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-shield">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>EchoGuard</h1>
+          <span class="brand-tagline">AI Voice & Deepfake Detection</span>
+        </div>
+      </div>
+      <div class="model-status" id="model-status">
+        <span class="status-dot"></span>
+        <span id="device-name">Connecting...</span>
+        <span class="badge badge-eer">In-the-Wild EER: 26.01%</span>
+      </div>
+    </header>
+
+    <!-- Main Grid: Input & Result -->
+    <main class="main-content">
+      <!-- Left Column: Audio Upload & Recording -->
+      <section class="card upload-card">
+        <div class="card-header-clean">
+          <h2 class="card-title">Voice Input</h2>
+          <p class="card-subtitle">Upload or record any voice sample to inspect for synthetic cloning.</p>
+        </div>
+
+        <!-- Dropzone -->
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="file-input" accept=".wav,.flac,.mp3,.ogg,.m4a" hidden>
+          <div class="dropzone-content">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3"/>
+                <circle cx="18" cy="16" r="3"/>
+              </svg>
+            </div>
+            <p class="dropzone-text"><strong>Drop audio here</strong> or <span class="browse-btn">browse file</span></p>
+            <span class="dropzone-hint">WAV • MP3 • FLAC • OGG</span>
+          </div>
+        </div>
+
+        <!-- Audio Player Preview (Shows when audio is loaded) -->
+        <div class="audio-player-wrapper" id="audio-preview-box" style="display: none;">
+          <div class="file-details-header">
+            <div class="file-info-group">
+              <span class="file-waveform-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2v20M17 5v14M7 5v14M2 9v6M22 9v6"/>
+                </svg>
+              </span>
+              <div class="file-text-meta">
+                <span id="preview-filename">voice_sample.wav</span>
+                <span id="preview-filesize">0 KB</span>
+              </div>
+            </div>
+            <button type="button" class="btn-clear-audio" id="clear-file-btn" title="Remove audio and choose another" aria-label="Remove audio">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <audio id="audio-player" controls></audio>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="action-controls">
+          <button class="btn btn-primary" id="analyze-btn" disabled>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <span id="analyze-btn-text">Analyze Voice</span>
+          </button>
+
+          <button class="btn btn-mic" id="record-btn">
+            <span class="mic-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+              </svg>
+            </span>
+            <span id="record-text">Record Voice</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Column: Analysis Result -->
+      <section class="card results-card" id="results-card">
+        <div class="card-header-clean">
+          <h2 class="card-title">Analysis Result</h2>
+          <p class="card-subtitle">Deepfake acoustic classification powered by Model B (SSL + RawBoost).</p>
+        </div>
+
+        <!-- Initial Placeholder State -->
+        <div class="empty-state" id="empty-state">
+          <div class="radar-pulse"></div>
+          <p>Awaiting voice sample</p>
+          <span>Upload an audio file or record from microphone to run analysis</span>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" id="loading-state" style="display: none;">
+          <div class="spinner"></div>
+          <p>Extracting acoustic SSL features & scoring...</p>
+        </div>
+
+        <!-- Active Result State -->
+        <div class="results-content" id="results-content" style="display: none;">
+          <!-- Prominent Verdict Banner -->
+          <div class="verdict-banner" id="verdict-banner">
+            <div class="verdict-icon" id="verdict-icon">✓</div>
+            <div class="verdict-details">
+              <span class="verdict-label" id="verdict-label">HUMAN VOICE</span>
+              <span class="verdict-desc" id="verdict-desc">Likely genuine human speech</span>
+            </div>
+            <div class="verdict-status-tag" id="verdict-status-tag">ABOVE THRESHOLD</div>
+          </div>
+
+          <!-- Operating Point & Margin Cards -->
+          <div class="stats-panel">
+            <div class="stat-card">
+              <span class="stat-label">Bonafide Score</span>
+              <span class="stat-value" id="bonafide-score">--</span>
+              <span class="stat-hint">Raw class-1 output</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Decision Threshold</span>
+              <span class="stat-value" id="threshold-val">1.518e-9</span>
+              <span class="stat-hint">In-the-Wild EER point</span>
+            </div>
+            <div class="stat-card stat-highlight" id="margin-card">
+              <span class="stat-label">Separation Margin</span>
+              <span class="stat-value" id="margin-val">--</span>
+              <span class="stat-hint" id="margin-hint">Relative to threshold</span>
+            </div>
+          </div>
+
+          <!-- Log-Scale Distance Visualizer -->
+          <div class="margin-visualizer">
+            <div class="visualizer-header">
+              <span class="viz-zone-spoof">&larr; AI VOICE REGION (s &lt; &theta;*)</span>
+              <span class="viz-threshold-marker">&theta;* = 1.518e-9</span>
+              <span class="viz-zone-bona">HUMAN VOICE REGION (s &ge; &theta;*) &rarr;</span>
+            </div>
+            <div class="spectrum-bar">
+              <div class="spectrum-center-line"></div>
+              <div class="spectrum-indicator" id="spectrum-indicator" style="left: 50%;"></div>
+            </div>
+            <div class="visualizer-footer">
+              <span>-15 OOM</span>
+              <span>-10 OOM</span>
+              <span>-5 OOM</span>
+              <span class="center-tag">0 (Threshold)</span>
+              <span>+5 OOM</span>
+              <span>+10 OOM</span>
+            </div>
+          </div>
+
+          <!-- Telemetry Grid -->
+          <div class="telemetry-grid">
+            <div class="telemetry-item">
+              <span class="telemetry-label">Inference Latency</span>
+              <span class="telemetry-val" id="latency-val">-- ms</span>
+              <span class="telemetry-sub" id="latency-breakdown">Pre: -- | Backbone: -- | Head: --</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Compute Device</span>
+              <span class="telemetry-val" id="device-val">--</span>
+              <span class="telemetry-sub">CUDA Accelerated</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Champion Architecture</span>
+              <span class="telemetry-val">Model B (SSL + RawBoost)</span>
+              <span class="telemetry-sub">Wav2Vec2-base + MLP</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Benchmark Accuracy</span>
+              <span class="telemetry-val text-accent">26.01% (Wild EER) | 3.54% (Eval)</span>
+              <span class="telemetry-sub">Calibrated Operating Boundary</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Secondary Developer / Benchmark Testing Section -->
+    <section class="card benchmark-card">
+      <div class="benchmark-header">
+        <div class="benchmark-info">
+          <h3 class="benchmark-title">Developer / Benchmark Testing</h3>
+          <p class="benchmark-subtitle">Verify model decision boundary against pre-validated In-the-Wild evaluation recordings.</p>
+        </div>
+        <div class="benchmark-actions">
+          <button class="btn btn-benchmark btn-benchmark-human" id="sample-bonafide-btn" data-type="bonafide">
+            <span class="indicator-dot dot-green"></span>
+            <span>Test Human Benchmark</span>
+            <span class="pill pill-green">Bonafide</span>
+          </button>
+          <button class="btn btn-benchmark btn-benchmark-ai" id="sample-spoof-btn" data-type="spoof">
+            <span class="indicator-dot dot-red"></span>
+            <span>Test AI Benchmark</span>
+            <span class="pill pill-red">Spoof</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>EchoGuard Voice Spoof & Deepfake Detection Engine • ASVspoof 2019 LA & In-the-Wild Benchmark</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js?v=6"></script>
+</body>
+</html>

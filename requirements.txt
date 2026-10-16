@@ -1,0 +1,11 @@
+torch
+torchaudio
+soundfile
+numpy
+scikit-learn
+pandas
+matplotlib
+fastapi
+uvicorn
+python-multipart
+transformers

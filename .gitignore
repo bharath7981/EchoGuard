@@ -1,0 +1,75 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ========================
+# Virtual Environment
+# ========================
+venv/
+env/
+.venv/
+
+# ========================
+# Datasets (large files — download separately)
+# ========================
+data/ASVspoof2019_LA_train/
+data/ASVspoof2019_LA_dev/
+data/ASVspoof2019_LA_eval/
+data/ASVspoof2019_LA_cm_protocols/
+data/ASVspoof2019_LA_asv_scores/
+release_in_the_wild/train/
+release_in_the_wild/test/
+release_in_the_wild/val/
+
+# ========================
+# Embeddings (generated files — re-extract from data)
+# ========================
+data/embeddings/*.pt
+
+# ========================
+# Model Checkpoints (too large for git)
+# ========================
+checkpoints/*.pt
+
+# ========================
+# Test audio files
+# ========================
+data/*.wav
+data/*.flac
+data/*.mp3
+
+# ========================
+# Reports (generated CSVs)
+# ========================
+reports/*.csv
+
+# ========================
+# IDE / Editor
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.agents/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# Misc
+# ========================
+*.log
+.env
