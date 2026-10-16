@@ -124,6 +124,7 @@ EchoGuard/
 ├── test_eval_ssl.py              # SSL model evaluation
 ├── test_api.py                   # FastAPI integration tests
 ├── run_server.py                 # Server entry point
+├── download_model.py             # Download pre-trained weights from GitHub Releases
 ├── requirements.txt              # Python dependencies
 └── .gitignore                    # Git exclusions (data, checkpoints, venv)
 ```
@@ -183,12 +184,29 @@ venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-### 2. Download Datasets
-Follow the dataset links above and place files in the correct directories.
-
-### 3. Training Pipeline (Reproduce from Scratch)
+### 2. Download Pre-trained Model (Recommended — No Training Needed)
 
 ```bash
+python download_model.py
+```
+
+This downloads the pre-trained model weights (~5 MB) from GitHub Releases into `checkpoints/`. You can skip straight to running the app — **no GPU, no dataset, no training required.**
+
+### 3. Run the Web Application
+
+```bash
+python run_server.py
+```
+
+Open **http://localhost:8000** in your browser. Upload an audio file or use the microphone to record and analyze.
+
+### 4. (Optional) Retrain from Scratch
+
+Only needed if you want to reproduce the full training pipeline:
+
+```bash
+# Download datasets first (see Dataset section above)
+
 # Step 1: Extract wav2vec2 embeddings from clean audio
 python extract_embeddings.py
 
@@ -207,14 +225,6 @@ python test_eval_ssl.py
 # Step 6: Cross-dataset evaluation on In-the-Wild
 python eval_in_the_wild.py
 ```
-
-### 4. Run the Web Application
-
-```bash
-python run_server.py
-```
-
-Open **http://localhost:8000** in your browser. Upload an audio file or use the microphone to record and analyze.
 
 ---
 

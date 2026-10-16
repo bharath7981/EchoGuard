@@ -177,8 +177,12 @@ def main():
     with open(bona_path, "rb") as f:
         bona_bytes = f.read()
 
-    # 2. AI Voice 1 (TTS)
+    # 2. AI Voice / Spoof
     ai_path = "data/test_ai_voice.wav"
+    if not os.path.exists(ai_path):
+        ai_path = "release_in_the_wild/test/fake/10012.wav"
+    if not os.path.exists(ai_path):
+        ai_path = "data/ASVspoof2019_LA_train/flac/LA_T_1000137.flac"
     with open(ai_path, "rb") as f:
         ai_bytes = f.read()
 
